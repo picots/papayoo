@@ -61,4 +61,23 @@ impl Player {
         self.score += self.calculate_round_score(payoo_suit);
         self.tricks_taken.clear();
     }
+
+    /// Simple AI: prefer cards with 0 points; avoid Papayoo; follow suit.
+    pub fn ai_choose_card(&self, lead_suit: Option<&Suit>, payoo_suit: &Suit) -> usize {
+        let legal = self.legal_card_indices(lead_suit);
+
+        // Try to play a card worth 0 points first
+        if let Some(&idx) = legal
+            .iter()
+            .find(|&&i| self.hand[i].points(payoo_suit) == 0)
+        {
+            return idx;
+        }
+
+        // Otherwise play the card worth the fewest points (avoid Papayoo last)
+        legal
+            .into_iter()
+            .min_by_key(|&i| self.hand[i].points(payoo_suit))
+            .unwrap_or(0)
+    }
 }
