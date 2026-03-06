@@ -1,6 +1,6 @@
 use crate::card::{Card, Suit};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PlayerKind {
     Human,
     AI,
