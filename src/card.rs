@@ -1,3 +1,5 @@
+use macroquad::prelude::*;
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Suit {
     Spades,
