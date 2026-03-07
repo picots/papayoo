@@ -12,11 +12,11 @@ pub enum Suit {
 impl Suit {
     pub fn symbol(&self) -> &str {
         match self {
-            Suit::Spades => "♠",
-            Suit::Hearts => "♥",
-            Suit::Diamonds => "♦",
-            Suit::Clubs => "♣",
-            Suit::Joker => "🃏",
+            Suit::Spades => "Pique",
+            Suit::Hearts => "Coeur",
+            Suit::Diamonds => "Carreau",
+            Suit::Clubs => "Trèfle",
+            Suit::Joker => "Atout",
         }
     }
 
@@ -32,7 +32,7 @@ impl Suit {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Card {
     pub suit: Suit,
-    pub value: u8, // 1–13 for normal cards, 1–8 for Jokers
+    pub value: u8, // 1–10 for normal cards, 1–20 for Jokers
 }
 
 impl Card {
@@ -53,22 +53,6 @@ impl Card {
                 }
             }
             _ => 0,
-        }
-    }
-
-    pub fn label(&self) -> String {
-        match &self.suit {
-            Suit::Joker => format!("J{}", self.value),
-            _ => {
-                let v = match self.value {
-                    1 => "A".to_string(),
-                    11 => "J".to_string(),
-                    12 => "Q".to_string(),
-                    13 => "K".to_string(),
-                    n => n.to_string(),
-                };
-                format!("{}{}", v, self.suit.symbol())
-            }
         }
     }
 
