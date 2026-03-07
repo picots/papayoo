@@ -72,6 +72,7 @@ impl Card {
         }
     }
 
+    #[allow(dead_code)]
     pub fn is_papayoo(&self, payoo_suit: &Suit) -> bool {
         &self.suit == payoo_suit && self.value == 7
     }
