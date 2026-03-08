@@ -23,7 +23,8 @@ pub struct Game {
     pub payoo_suit: Option<Suit>,
     pub round: u32,
     pub trick_winner: Option<usize>,
-    pub state_timer: f32, // For timed transitions (AITurn, TrickEnd)
+    pub last_trick: Vec<(usize, Card)>, // Snapshot of trick for TrickEnd display
+    pub state_timer: f32,               // For timed transitions (AITurn, TrickEnd)
 }
 
 impl Game {
@@ -45,6 +46,7 @@ impl Game {
             payoo_suit: None,
             round: 1,
             trick_winner: None,
+            last_trick: Vec::new(),
             state_timer: 0.0,
         };
 
@@ -69,7 +71,6 @@ impl Game {
 
     /// Human plays a card from their hand (by index).
     pub fn human_play_card(&mut self, card_index: usize) {
-        //let payoo = self.payoo_suit.clone().unwrap();
         let legal = self.players[0].legal_card_indices(self.lead_suit.as_ref());
         if !legal.contains(&card_index) {
             return; // Illegal move, ignore
@@ -124,6 +125,9 @@ impl Game {
             .map(|(i, _)| *i)
             .unwrap_or(self.trick_leader);
 
+        // Snapshot the trick for display during TrickEnd
+        self.last_trick = self.trick.clone();
+
         // Give all trick cards to the winner
         let cards: Vec<Card> = self.trick.drain(..).map(|(_, c)| c).collect();
         self.players[winner_idx].tricks_taken.extend(cards);
@@ -138,7 +142,7 @@ impl Game {
             self.trick_leader = winner_idx;
             self.current_player = winner_idx;
             self.state = GameState::TrickEnd;
-            self.state_timer = 1.5; // Show trick result for 1.5s
+            self.state_timer = 3.0; // Show trick result for 3s
         }
     }
 
@@ -169,15 +173,11 @@ impl Game {
         }
         self.trick_leader = self.round as usize % 4;
         self.current_player = self.trick_leader;
-        self.payoo_suit = None;
         self.lead_suit = None;
         self.trick.clear();
         self.deal_cards();
-        self.state = if self.players[self.current_player].kind == PlayerKind::Human {
-            GameState::PlayerTurn
-        } else {
-            GameState::AITurn
-        };
+        self.pick_random_payoo();
+        self.state = GameState::PlayerTurn;
     }
 
     pub fn update_timer(&mut self, dt: f32) {
