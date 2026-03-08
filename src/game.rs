@@ -142,7 +142,7 @@ impl Game {
             self.trick_leader = winner_idx;
             self.current_player = winner_idx;
             self.state = GameState::TrickEnd;
-            self.state_timer = 3.0; // Show trick result for 3s
+            self.state_timer = 1.5; // Show trick result for 1.5s
         }
     }
 
