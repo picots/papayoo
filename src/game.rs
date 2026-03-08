@@ -1,15 +1,16 @@
 use crate::card::{Card, Suit};
 use crate::deck::Deck;
 use crate::player::{Player, PlayerKind};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameState {
-    ChoosingPayoo, // First player of the round chooses Payoo suit
-    PlayerTurn,    // Human picks a card to play
-    AITurn,        // AI plays automatically
-    TrickEnd,      // Show trick result briefly before next trick
-    RoundEnd,      // Show round scores
-    GameOver,      // Final scores
+    PlayerTurn, // Human picks a card to play
+    AITurn,     // AI plays automatically
+    TrickEnd,   // Show trick result briefly before next trick
+    RoundEnd,   // Show round scores
+    GameOver,   // Final scores
 }
 
 pub struct Game {
@@ -36,7 +37,7 @@ impl Game {
 
         let mut game = Game {
             players,
-            state: GameState::ChoosingPayoo,
+            state: GameState::PlayerTurn,
             current_player: 0,
             trick_leader: 0,
             trick: Vec::new(),
@@ -48,7 +49,14 @@ impl Game {
         };
 
         game.deal_cards();
+        game.pick_random_payoo();
         game
+    }
+
+    fn pick_random_payoo(&mut self) {
+        let suits = [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs];
+        let suit = suits.choose(&mut thread_rng()).unwrap().clone();
+        self.payoo_suit = Some(suit);
     }
 
     fn deal_cards(&mut self) {
@@ -57,16 +65,6 @@ impl Game {
         for (player, hand) in self.players.iter_mut().zip(hands) {
             player.hand = hand;
         }
-    }
-
-    /// Human chooses the Payoo suit for this round.
-    pub fn choose_payoo(&mut self, suit: Suit) {
-        self.payoo_suit = Some(suit);
-        self.state = if self.players[self.current_player].kind == PlayerKind::Human {
-            GameState::PlayerTurn
-        } else {
-            GameState::AITurn
-        };
     }
 
     /// Human plays a card from their hand (by index).
@@ -175,7 +173,11 @@ impl Game {
         self.lead_suit = None;
         self.trick.clear();
         self.deal_cards();
-        self.state = GameState::ChoosingPayoo;
+        self.state = if self.players[self.current_player].kind == PlayerKind::Human {
+            GameState::PlayerTurn
+        } else {
+            GameState::AITurn
+        };
     }
 
     pub fn update_timer(&mut self, dt: f32) {
