@@ -44,7 +44,7 @@ impl Card {
     /// Depends on the current Payoo suit chosen each round.
     pub fn points(&self, payoo_suit: &Suit) -> u32 {
         match &self.suit {
-            Suit::Joker => self.value as u32, // Joker 1 = 1pt, Joker 8 = 8pt
+            Suit::Joker => self.value as u32,
             s if s == payoo_suit => {
                 if self.value == 7 {
                     40 // The Papayoo!

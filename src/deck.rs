@@ -13,12 +13,12 @@ impl Deck {
         let mut cards = Vec::new();
 
         for suit in [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs] {
-            for value in 1..=13 {
+            for value in 1..=10 {
                 cards.push(Card::new(suit.clone(), value));
             }
         }
 
-        for value in 1..=8 {
+        for value in 1..=20 {
             cards.push(Card::new(Suit::Joker, value));
         }
 
