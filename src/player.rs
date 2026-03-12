@@ -80,4 +80,24 @@ impl Player {
             .min_by_key(|&i| self.hand[i].points(payoo_suit))
             .unwrap_or(0)
     }
+
+    pub fn give_cards(&mut self, cards: Vec<Card>, other: &mut Player) {
+        for card in cards {
+            let idx = self.hand.iter().position(|c| c == &card).unwrap();
+            self.hand.remove(idx);
+            other.hand.push(card);
+        }
+    }
+
+    pub fn ai_cards_to_give(&mut self, payoo_suit: &Suit) -> Vec<Card> {
+        let mut cards_to_give = Vec::new();
+        for card in self.hand.iter().shuffle(&mut rand::thread_rng()) {
+            if card.points(payoo_suit) == 0 {
+                cards_to_give.push(*card);
+            }
+            if (cards_to_give.len() == 5) {
+                return cards_to_give;
+            }
+        }
+    }
 }

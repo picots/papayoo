@@ -6,11 +6,12 @@ use rand::thread_rng;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameState {
-    PlayerTurn, // Human picks a card to play
-    AITurn,     // AI plays automatically
-    TrickEnd,   // Show trick result briefly before next trick
-    RoundEnd,   // Show round scores
-    GameOver,   // Final scores
+    GivingCards, // All players are giving 5 cards to player at their left
+    PlayerTurn,  // Human picks a card to play
+    AITurn,      // AI plays automatically
+    TrickEnd,    // Show trick result briefly before next trick
+    RoundEnd,    // Show round scores
+    GameOver,    // Final scores
 }
 
 pub struct Game {
@@ -38,7 +39,7 @@ impl Game {
 
         let mut game = Game {
             players,
-            state: GameState::PlayerTurn,
+            state: GameState::GivingCards,
             current_player: 0,
             trick_leader: 0,
             trick: Vec::new(),
