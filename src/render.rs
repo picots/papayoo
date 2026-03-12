@@ -249,7 +249,7 @@ fn draw_game_over_overlay(game: &Game, sw: f32, sh: f32) {
             _ => "4.",
         };
         draw_text(
-            &format!("{} {} — {} pts", medal, name, score),
+            &format!("{} {} - {} pts", medal, name, score),
             sw / 2.0 - 150.0,
             sh / 2.0 - 60.0 + i as f32 * 36.0,
             24.0,
