@@ -26,6 +26,8 @@ pub struct Game {
     pub trick_winner: Option<usize>,
     pub last_trick: Vec<(usize, Card)>, // Snapshot of trick for TrickEnd display
     pub state_timer: f32,               // For timed transitions (AITurn, TrickEnd)
+    pub selected_to_give: Vec<usize>,   // Indices of cards human selected to give
+    pub pending_gifts: Vec<Vec<Card>>,  // Cards each player will give (indexed by player)
 }
 
 impl Game {
@@ -49,6 +51,8 @@ impl Game {
             trick_winner: None,
             last_trick: Vec::new(),
             state_timer: 0.0,
+            selected_to_give: Vec::new(),
+            pending_gifts: Vec::new(),
         };
 
         game.deal_cards();
@@ -178,6 +182,59 @@ impl Game {
         self.trick.clear();
         self.deal_cards();
         self.pick_random_payoo();
+        self.selected_to_give.clear();
+        self.state = GameState::GivingCards;
+    }
+
+    /// Toggle selection of a card in human hand for the giving phase.
+    pub fn toggle_give_selection(&mut self, card_index: usize) {
+        if let Some(pos) = self.selected_to_give.iter().position(|&i| i == card_index) {
+            self.selected_to_give.remove(pos);
+        } else if self.selected_to_give.len() < 5 {
+            self.selected_to_give.push(card_index);
+        }
+    }
+
+    /// Called when human confirms their 5 selected cards to give.
+    /// AIs pick their cards automatically, then all exchanges happen simultaneously.
+    pub fn confirm_give_cards(&mut self) {
+        if self.selected_to_give.len() != 5 {
+            return;
+        }
+
+        let payoo = self.payoo_suit.clone().unwrap_or(crate::card::Suit::Spades);
+
+        // Collect cards each player will give
+        let mut gifts: Vec<Vec<Card>> = Vec::new();
+
+        // Player 0 (human): use selected_to_give indices
+        let human_cards: Vec<Card> = self
+            .selected_to_give
+            .iter()
+            .map(|&i| self.players[0].hand[i].clone())
+            .collect();
+        gifts.push(human_cards);
+
+        // AI players: pick automatically
+        for i in 1..4 {
+            let cards = self.players[i].ai_cards_to_give(&payoo);
+            gifts.push(cards);
+        }
+
+        // Remove given cards from each hand, then give to right neighbour
+        // Right neighbour of player i = (i + 1) % 4
+        for i in 0..4 {
+            for card in &gifts[i] {
+                let idx = self.players[i].hand.iter().position(|c| c == card).unwrap();
+                self.players[i].hand.remove(idx);
+            }
+        }
+        for i in 0..4 {
+            let receiver = (i + 1) % 4;
+            self.players[receiver].hand.extend(gifts[i].clone());
+        }
+
+        self.selected_to_give.clear();
         self.state = GameState::PlayerTurn;
     }
 
