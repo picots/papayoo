@@ -89,15 +89,18 @@ impl Player {
         }
     }
 
-    pub fn ai_cards_to_give(&mut self, payoo_suit: &Suit) -> Vec<Card> {
+    pub fn ai_cards_to_give(&self, payoo_suit: &Suit) -> Vec<Card> {
+        let mut hand = self.hand.clone();
+        hand.shuffle(&mut rand::thread_rng());
         let mut cards_to_give = Vec::new();
-        for card in self.hand.iter().shuffle(&mut rand::thread_rng()) {
+        for card in &hand {
             if card.points(payoo_suit) == 0 {
-                cards_to_give.push(*card);
+                cards_to_give.push(card.clone());
             }
-            if (cards_to_give.len() == 5) {
+            if cards_to_give.len() == 5 {
                 return cards_to_give;
             }
         }
+        cards_to_give
     }
 }
