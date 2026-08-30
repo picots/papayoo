@@ -78,7 +78,9 @@ pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
     );
 
     // Payoo suit indicator
-    if let Some(payoo) = &game.payoo_suit {
+    if let Some(payoo) = &game.payoo_suit
+        && game.state != GameState::GivingCards
+    {
         let txt = format!("Payoo : {}", payoo.symbol());
         draw_text(&txt, sw - 160.0, 30.0, 24.0, YELLOW);
     }
@@ -318,5 +320,5 @@ fn draw_giving_overlay(game: &Game, sw: f32, _sh: f32) {
 }
 
 pub fn giving_confirm_clicked(sw: f32, my: f32, mx: f32) -> bool {
-    mx >= sw / 2.0 - 80.0 && mx <= sw / 2.0 + 80.0 && my >= 95.0 && my <= 135.0
+    mx >= sw / 2.0 - 45.0 && mx <= sw / 2.0 + 45.0 && my >= 495.0 && my <= 535.0
 }
