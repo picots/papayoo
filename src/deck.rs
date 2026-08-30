@@ -41,13 +41,3 @@ impl Deck {
         hands
     }
 }
-
-fn suit_order(suit: &crate::card::Suit) -> u8 {
-    match suit {
-        crate::card::Suit::Spades => 0,
-        crate::card::Suit::Hearts => 1,
-        crate::card::Suit::Diamonds => 2,
-        crate::card::Suit::Clubs => 3,
-        crate::card::Suit::Joker => 4,
-    }
-}

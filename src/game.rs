@@ -180,6 +180,7 @@ impl Game {
         self.lead_suit = None;
         self.trick.clear();
         self.deal_cards();
+        self.pick_random_payoo();
         self.selected_to_give.clear();
         self.state = GameState::GivingCards;
     }
@@ -230,6 +231,7 @@ impl Game {
         for i in 0..4 {
             let receiver = (i + 1) % 4;
             self.players[receiver].hand.extend(gifts[i].clone());
+            self.players[receiver].sort_hand();
         }
 
         self.selected_to_give.clear();
