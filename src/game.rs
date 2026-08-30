@@ -235,7 +235,7 @@ impl Game {
         }
 
         self.selected_to_give.clear();
-        self.state = GameState::PlayerTurn;
+        self.advance_turn();
     }
 
     pub fn update_timer(&mut self, dt: f32) {
