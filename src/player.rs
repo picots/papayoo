@@ -54,41 +54,38 @@ impl Player {
     }
 
     /// Calculate round points from collected tricks.
-    pub fn calculate_round_score(&self, payoo_suit: &Suit) -> u32 {
-        self.tricks_taken.iter().map(|c| c.points(payoo_suit)).sum()
+    pub fn calculate_round_score(&self) -> u32 {
+        self.tricks_taken.iter().map(|c| c.points()).sum()
     }
 
     /// Clear tricks for the next round, add round score to total.
-    pub fn end_round(&mut self, payoo_suit: &Suit) {
-        self.score += self.calculate_round_score(payoo_suit);
+    pub fn end_round(&mut self) {
+        self.score += self.calculate_round_score();
         self.tricks_taken.clear();
     }
 
     /// Simple AI: prefer cards with 0 points; avoid Papayoo; follow suit.
-    pub fn ai_choose_card(&self, lead_suit: Option<&Suit>, payoo_suit: &Suit) -> usize {
+    pub fn ai_choose_card(&self, lead_suit: Option<&Suit>) -> usize {
         let legal = self.legal_card_indices(lead_suit);
 
         // Try to play a card worth 0 points first
-        if let Some(&idx) = legal
-            .iter()
-            .find(|&&i| self.hand[i].points(payoo_suit) == 0)
-        {
+        if let Some(&idx) = legal.iter().find(|&&i| self.hand[i].points() == 0) {
             return idx;
         }
 
         // Otherwise play the card worth the fewest points (avoid Papayoo last)
         legal
             .into_iter()
-            .min_by_key(|&i| self.hand[i].points(payoo_suit))
+            .min_by_key(|&i| self.hand[i].points())
             .unwrap_or(0)
     }
 
-    pub fn ai_cards_to_give(&self, payoo_suit: &Suit) -> Vec<Card> {
+    pub fn ai_cards_to_give(&self) -> Vec<Card> {
         let mut hand = self.hand.clone();
         hand.shuffle(&mut rand::thread_rng());
         let mut cards_to_give = Vec::new();
         for card in &hand {
-            if card.points(payoo_suit) == 0 {
+            if card.points() == 0 {
                 cards_to_give.push(card.clone());
             }
             if cards_to_give.len() == 5 {

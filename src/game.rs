@@ -106,8 +106,7 @@ impl Game {
 
     /// AI plays a card automatically.
     pub fn ai_play_card(&mut self) {
-        let payoo = self.payoo_suit.clone().unwrap_or(Suit::Spades);
-        let idx = self.players[self.current_player].ai_choose_card(self.lead_suit.as_ref(), &payoo);
+        let idx = self.players[self.current_player].ai_choose_card(self.lead_suit.as_ref());
         let card = self.players[self.current_player].play_card(idx);
 
         if self.lead_suit.is_none() {
@@ -160,9 +159,8 @@ impl Game {
     }
 
     fn end_round(&mut self) {
-        let payoo = self.payoo_suit.clone().unwrap_or(Suit::Spades);
         for player in &mut self.players {
-            player.end_round(&payoo);
+            player.end_round();
         }
         self.state = GameState::RoundEnd;
         self.state_timer = 3.0;
@@ -216,7 +214,7 @@ impl Game {
 
         // AI players: pick automatically
         for i in 1..4 {
-            let cards = self.players[i].ai_cards_to_give(&payoo);
+            let cards = self.players[i].ai_cards_to_give();
             gifts.push(cards);
         }
 
