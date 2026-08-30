@@ -1,5 +1,7 @@
 use crate::card::{Card, Suit};
 
+use rand::prelude::SliceRandom;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum PlayerKind {
     Human,
@@ -79,5 +81,38 @@ impl Player {
             .into_iter()
             .min_by_key(|&i| self.hand[i].points(payoo_suit))
             .unwrap_or(0)
+    }
+
+    pub fn ai_cards_to_give(&self, payoo_suit: &Suit) -> Vec<Card> {
+        let mut hand = self.hand.clone();
+        hand.shuffle(&mut rand::thread_rng());
+        let mut cards_to_give = Vec::new();
+        for card in &hand {
+            if card.points(payoo_suit) == 0 {
+                cards_to_give.push(card.clone());
+            }
+            if cards_to_give.len() == 5 {
+                return cards_to_give;
+            }
+        }
+        cards_to_give
+    }
+
+    pub fn sort_hand(&mut self) {
+        self.hand.sort_by(|a, b| {
+            let sa = suit_order(&a.suit);
+            let sb = suit_order(&b.suit);
+            sa.cmp(&sb).then(a.value.cmp(&b.value))
+        });
+    }
+}
+
+pub fn suit_order(suit: &crate::card::Suit) -> u8 {
+    match suit {
+        crate::card::Suit::Spades => 0,
+        crate::card::Suit::Hearts => 1,
+        crate::card::Suit::Clubs => 2,
+        crate::card::Suit::Diamonds => 3,
+        crate::card::Suit::Joker => 4,
     }
 }

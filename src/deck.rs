@@ -38,24 +38,6 @@ impl Deck {
         for (i, card) in self.cards.drain(..).enumerate() {
             hands[i % num_players].push(card);
         }
-        // Sort each hand for nicer display
-        for hand in &mut hands {
-            hand.sort_by(|a, b| {
-                let sa = suit_order(&a.suit);
-                let sb = suit_order(&b.suit);
-                sa.cmp(&sb).then(a.value.cmp(&b.value))
-            });
-        }
         hands
-    }
-}
-
-fn suit_order(suit: &crate::card::Suit) -> u8 {
-    match suit {
-        crate::card::Suit::Spades => 0,
-        crate::card::Suit::Hearts => 1,
-        crate::card::Suit::Diamonds => 2,
-        crate::card::Suit::Clubs => 3,
-        crate::card::Suit::Joker => 4,
     }
 }

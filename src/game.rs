@@ -6,11 +6,12 @@ use rand::thread_rng;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameState {
-    PlayerTurn, // Human picks a card to play
-    AITurn,     // AI plays automatically
-    TrickEnd,   // Show trick result briefly before next trick
-    RoundEnd,   // Show round scores
-    GameOver,   // Final scores
+    GivingCards, // All players are giving 5 cards to player at their left
+    PlayerTurn,  // Human picks a card to play
+    AITurn,      // AI plays automatically
+    TrickEnd,    // Show trick result briefly before next trick
+    RoundEnd,    // Show round scores
+    GameOver,    // Final scores
 }
 
 pub struct Game {
@@ -25,6 +26,7 @@ pub struct Game {
     pub trick_winner: Option<usize>,
     pub last_trick: Vec<(usize, Card)>, // Snapshot of trick for TrickEnd display
     pub state_timer: f32,               // For timed transitions (AITurn, TrickEnd)
+    pub selected_to_give: Vec<usize>,   // Indices of cards human selected to give
 }
 
 impl Game {
@@ -38,7 +40,7 @@ impl Game {
 
         let mut game = Game {
             players,
-            state: GameState::PlayerTurn,
+            state: GameState::GivingCards,
             current_player: 0,
             trick_leader: 0,
             trick: Vec::new(),
@@ -48,6 +50,7 @@ impl Game {
             trick_winner: None,
             last_trick: Vec::new(),
             state_timer: 0.0,
+            selected_to_give: Vec::new(),
         };
 
         game.deal_cards();
@@ -66,6 +69,7 @@ impl Game {
         let hands = deck.deal(4);
         for (player, hand) in self.players.iter_mut().zip(hands) {
             player.hand = hand;
+            player.sort_hand();
         }
     }
 
@@ -142,7 +146,7 @@ impl Game {
             self.trick_leader = winner_idx;
             self.current_player = winner_idx;
             self.state = GameState::TrickEnd;
-            self.state_timer = 1.5; // Show trick result for 1.5s
+            self.state_timer = 3.0; // Show trick result for 3s
         }
     }
 
@@ -177,6 +181,60 @@ impl Game {
         self.trick.clear();
         self.deal_cards();
         self.pick_random_payoo();
+        self.selected_to_give.clear();
+        self.state = GameState::GivingCards;
+    }
+
+    /// Toggle selection of a card in human hand for the giving phase.
+    pub fn toggle_give_selection(&mut self, card_index: usize) {
+        if let Some(pos) = self.selected_to_give.iter().position(|&i| i == card_index) {
+            self.selected_to_give.remove(pos);
+        } else if self.selected_to_give.len() < 5 {
+            self.selected_to_give.push(card_index);
+        }
+    }
+
+    /// Called when human confirms their 5 selected cards to give.
+    /// AIs pick their cards automatically, then all exchanges happen simultaneously.
+    pub fn confirm_give_cards(&mut self) {
+        if self.selected_to_give.len() != 5 {
+            return;
+        }
+
+        let payoo = self.payoo_suit.clone().unwrap_or(crate::card::Suit::Spades);
+
+        // Collect cards each player will give
+        let mut gifts: Vec<Vec<Card>> = Vec::new();
+
+        // Player 0 (human): use selected_to_give indices
+        let human_cards: Vec<Card> = self
+            .selected_to_give
+            .iter()
+            .map(|&i| self.players[0].hand[i].clone())
+            .collect();
+        gifts.push(human_cards);
+
+        // AI players: pick automatically
+        for i in 1..4 {
+            let cards = self.players[i].ai_cards_to_give(&payoo);
+            gifts.push(cards);
+        }
+
+        // Remove given cards from each hand, then give to right neighbour
+        // Right neighbour of player i = (i + 1) % 4
+        for i in 0..4 {
+            for card in &gifts[i] {
+                let idx = self.players[i].hand.iter().position(|c| c == card).unwrap();
+                self.players[i].hand.remove(idx);
+            }
+        }
+        for i in 0..4 {
+            let receiver = (i + 1) % 4;
+            self.players[receiver].hand.extend(gifts[i].clone());
+            self.players[receiver].sort_hand();
+        }
+
+        self.selected_to_give.clear();
         self.state = GameState::PlayerTurn;
     }
 

@@ -150,14 +150,27 @@ pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
     for (i, card) in hand.iter().enumerate() {
         let x = hx_start + i as f32 * (CARD_W + 6.0);
         let is_hovered = hovered_card == Some(i);
-        let y = if is_hovered { hy - 12.0 } else { hy };
-        let is_legal = legal.contains(&i);
-        let grayed = game.state == GameState::PlayerTurn && !is_legal;
-        draw_card(card, x, y, is_hovered && is_legal, grayed);
+        let is_selected = game.selected_to_give.contains(&i);
+        let y = if is_hovered || is_selected {
+            hy - 12.0
+        } else {
+            hy
+        };
+        let grayed = game.state == GameState::PlayerTurn && !legal.contains(&i);
+        draw_card(
+            card,
+            x,
+            y,
+            is_selected || (is_hovered && game.state == GameState::GivingCards),
+            grayed,
+        );
     }
 
     // State overlays
     match &game.state {
+        GameState::GivingCards => {
+            draw_giving_overlay(game, sw, sh);
+        }
         GameState::TrickEnd => {
             if let Some(w) = game.trick_winner {
                 let msg = format!("{} remporte le pli !", game.players[w].name);
@@ -276,4 +289,34 @@ fn draw_centered_message(msg: &str, sw: f32, sh: f32) {
         Color::new(0.0, 0.0, 0.0, 0.75),
     );
     draw_text(msg, sw / 2.0 - w / 2.0, sh / 2.0 + 4.0, 24.0, YELLOW);
+}
+
+fn draw_giving_overlay(game: &Game, sw: f32, _sh: f32) {
+    let count = game.selected_to_give.len();
+    let msg = format!("Choisissez 5 cartes à donner à votre voisin ({}/5)", count);
+    let msg_w = msg.len() as f32 * 10.0;
+    let msg_h = 475.0;
+    let btn_h = 500.0;
+    draw_rectangle(
+        sw / 2.0 - msg_w / 2.0 - 12.0,
+        msg_h - 25.0,
+        msg_w,
+        36.0,
+        Color::new(0.0, 0.0, 0.0, 0.75),
+    );
+    draw_text(&msg, sw / 2.0 - msg_w / 2.0 + 10.0, msg_h, 20.0, WHITE);
+
+    // Bouton Confirmer, actif seulement si 5 cartes sélectionnées
+    let btn_color = if count == 5 {
+        Color::new(0.2, 0.7, 0.2, 1.0)
+    } else {
+        Color::new(0.4, 0.4, 0.4, 1.0)
+    };
+    draw_rectangle(sw / 2.0 - 80.0, btn_h, 160.0, 40.0, btn_color);
+    draw_rectangle_lines(sw / 2.0 - 80.0, btn_h, 160.0, 40.0, 2.0, DARKGRAY);
+    draw_text("Confirmer", sw / 2.0 - 45.0, btn_h + 25.0, 22.0, WHITE);
+}
+
+pub fn giving_confirm_clicked(sw: f32, my: f32, mx: f32) -> bool {
+    mx >= sw / 2.0 - 80.0 && mx <= sw / 2.0 + 80.0 && my >= 95.0 && my <= 135.0
 }

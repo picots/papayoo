@@ -34,7 +34,8 @@ async fn main() {
 
         // --- Hover detection for human hand ---
         let hand_size = game.players[0].hand.len();
-        let hovered = if game.state == GameState::PlayerTurn {
+        let hovered = if game.state == GameState::PlayerTurn || game.state == GameState::GivingCards
+        {
             hovered_hand_card(sw, sh, hand_size, mx, my)
         } else {
             None
@@ -46,6 +47,13 @@ async fn main() {
                 GameState::PlayerTurn => {
                     if let Some(idx) = hovered {
                         game.human_play_card(idx);
+                    }
+                }
+                GameState::GivingCards => {
+                    if render::giving_confirm_clicked(sw, my, mx) {
+                        game.confirm_give_cards();
+                    } else if let Some(idx) = hovered {
+                        game.toggle_give_selection(idx);
                     }
                 }
                 _ => {}
