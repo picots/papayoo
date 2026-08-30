@@ -105,4 +105,12 @@ impl Player {
         }
         cards_to_give
     }
+
+    pub fn sort_hand(&mut self) {
+        self.hand.sort_by(|a, b| {
+            let sa = suit_order(&a.suit);
+            let sb = suit_order(&b.suit);
+            sa.cmp(&sb).then(a.value.cmp(&b.value))
+        });
+    }
 }

@@ -69,6 +69,7 @@ impl Game {
         let hands = deck.deal(4);
         for (player, hand) in self.players.iter_mut().zip(hands) {
             player.hand = hand;
+            player.sort_hand();
         }
     }
 
@@ -179,7 +180,6 @@ impl Game {
         self.lead_suit = None;
         self.trick.clear();
         self.deal_cards();
-        self.pick_random_payoo();
         self.selected_to_give.clear();
         self.state = GameState::GivingCards;
     }
@@ -233,7 +233,7 @@ impl Game {
         }
 
         self.selected_to_give.clear();
-        self.state = GameState::GivingCards;
+        self.state = GameState::PlayerTurn;
     }
 
     pub fn update_timer(&mut self, dt: f32) {

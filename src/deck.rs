@@ -38,14 +38,6 @@ impl Deck {
         for (i, card) in self.cards.drain(..).enumerate() {
             hands[i % num_players].push(card);
         }
-        // Sort each hand for nicer display
-        for hand in &mut hands {
-            hand.sort_by(|a, b| {
-                let sa = suit_order(&a.suit);
-                let sb = suit_order(&b.suit);
-                sa.cmp(&sb).then(a.value.cmp(&b.value))
-            });
-        }
         hands
     }
 }
