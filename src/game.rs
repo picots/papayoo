@@ -27,7 +27,6 @@ pub struct Game {
     pub last_trick: Vec<(usize, Card)>, // Snapshot of trick for TrickEnd display
     pub state_timer: f32,               // For timed transitions (AITurn, TrickEnd)
     pub selected_to_give: Vec<usize>,   // Indices of cards human selected to give
-    pub pending_gifts: Vec<Vec<Card>>,  // Cards each player will give (indexed by player)
 }
 
 impl Game {
@@ -52,7 +51,6 @@ impl Game {
             last_trick: Vec::new(),
             state_timer: 0.0,
             selected_to_give: Vec::new(),
-            pending_gifts: Vec::new(),
         };
 
         game.deal_cards();
@@ -235,7 +233,7 @@ impl Game {
         }
 
         self.selected_to_give.clear();
-        self.state = GameState::PlayerTurn;
+        self.state = GameState::GivingCards;
     }
 
     pub fn update_timer(&mut self, dt: f32) {

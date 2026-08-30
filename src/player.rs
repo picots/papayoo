@@ -1,5 +1,7 @@
 use crate::card::{Card, Suit};
 
+use rand::prelude::SliceRandom;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum PlayerKind {
     Human,
