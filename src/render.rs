@@ -2,6 +2,7 @@ use macroquad::prelude::*;
 
 use crate::card::Card;
 use crate::game::{Game, GameState};
+use crate::player::PlayerKind;
 
 // Card dimensions
 pub const CARD_W: f32 = 70.0;
@@ -114,15 +115,25 @@ pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
     }
 
     // Opponent hands (top — show backs)
-    let opp_positions = [
-        (sw / 2.0 - 40.0, 75.0),       // Top (player 2)
-        (30.0, sh / 2.0 - 50.0),       // Left (player 1)
-        (sw - 180.0, sh / 2.0 - 50.0), // Right (player 3)
+    let positions = [
+        (sw / 2.0 - 40.0, sh - 150.0), // Bottom (human)
+        (sw / 2.0 - 40.0, 75.0),       // Top (bot 2)
+        (30.0, sh / 2.0 - 50.0),       // Left (bot 1)
+        (sw - 180.0, sh / 2.0 - 50.0), // Right (bot 3)
     ];
-    for (i, (bx, by)) in opp_positions.iter().enumerate() {
-        let p = &game.players[i + 1];
+    for (i, (bx, by)) in positions.iter().enumerate() {
+        let p = &game.players[i];
         let count = p.hand.len();
-        draw_text(&p.name, *bx, *by - 4.0, 16.0, WHITE);
+        draw_text(
+            &format!("{} ({})", p.name, p.calculate_round_score()),
+            *bx,
+            *by - 4.0,
+            16.0,
+            WHITE,
+        );
+        if p.kind == PlayerKind::Human {
+            continue; // No need to draw card backs
+        }
         for j in 0..count.min(10) {
             draw_card_back(*bx + j as f32 * 8.0, *by);
         }
@@ -308,7 +319,7 @@ fn draw_giving_overlay(game: &Game, sw: f32, _sh: f32) {
     );
     draw_text(&msg, sw / 2.0 - msg_w / 2.0 + 10.0, msg_h, 20.0, WHITE);
 
-    // Bouton Confirmer, actif seulement si 5 cartes sélectionnées
+    // Confirm button, only active when 5 cards are selected
     let btn_color = if count == 5 {
         Color::new(0.2, 0.7, 0.2, 1.0)
     } else {

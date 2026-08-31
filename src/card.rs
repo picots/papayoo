@@ -42,21 +42,14 @@ impl Card {
 
     /// Points that this card gives if collected in a trick.
     /// Depends on the current Payoo suit chosen each round.
-    pub fn points(&self, payoo_suit: &Suit) -> u32 {
+    pub fn points(&self) -> u32 {
         match &self.suit {
             Suit::Joker => self.value as u32,
-            s if s == payoo_suit => {
-                if self.value == 7 {
-                    40 // The Papayoo!
-                } else {
-                    self.value as u32
-                }
-            }
+            s if self.is_papayoo(s) => 40, // The Papayoo!
             _ => 0,
         }
     }
 
-    #[allow(dead_code)]
     pub fn is_papayoo(&self, payoo_suit: &Suit) -> bool {
         &self.suit == payoo_suit && self.value == 7
     }
