@@ -6,6 +6,7 @@ use rand::thread_rng;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameState {
+    ChooseNames, // Human player choose players names
     GivingCards, // All players are giving 5 cards to player at their left
     PlayerTurn,  // Human picks a card to play
     AITurn,      // AI plays automatically
@@ -32,10 +33,10 @@ pub struct Game {
 impl Game {
     pub fn new() -> Self {
         let players = vec![
-            Player::new("Solal".to_string(), PlayerKind::Human),
-            Player::new("Alice".to_string(), PlayerKind::AI),
-            Player::new("Bob".to_string(), PlayerKind::AI),
-            Player::new("Clara".to_string(), PlayerKind::AI),
+            Player::new("Joueur 1".to_string(), PlayerKind::Human),
+            Player::new("Joueur 2".to_string(), PlayerKind::AI),
+            Player::new("Joueur 3".to_string(), PlayerKind::AI),
+            Player::new("Joueur 4".to_string(), PlayerKind::AI),
         ];
 
         let mut game = Game {
@@ -56,6 +57,16 @@ impl Game {
         game.deal_cards();
         game.pick_random_payoo();
         game
+    }
+
+    fn set_names(&mut self, names: Vec<String>) {
+        if names.len() != 4 {
+            return;
+        }
+
+        for i in 0..4 {
+            self.players[i].name = names[i].to_string();
+        }
     }
 
     fn pick_random_payoo(&mut self) {
