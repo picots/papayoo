@@ -308,7 +308,7 @@ fn draw_giving_overlay(game: &Game, sw: f32, _sh: f32) {
     );
     draw_text(&msg, sw / 2.0 - msg_w / 2.0 + 10.0, msg_h, 20.0, WHITE);
 
-    // Bouton Confirmer, actif seulement si 5 cartes sélectionnées
+    // Confirm button, only active when 5 cards are selected
     let btn_color = if count == 5 {
         Color::new(0.2, 0.7, 0.2, 1.0)
     } else {

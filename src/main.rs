@@ -7,7 +7,7 @@ mod player;
 mod render;
 
 use game::GameState;
-use render::{draw_game, hovered_hand_card};
+use render::{draw_game, giving_confirm_clicked, hovered_hand_card};
 
 fn window_conf() -> Conf {
     Conf {
@@ -50,7 +50,7 @@ async fn main() {
                     }
                 }
                 GameState::GivingCards => {
-                    if render::giving_confirm_clicked(sw, my, mx) {
+                    if giving_confirm_clicked(sw, my, mx) {
                         game.confirm_give_cards();
                     } else if let Some(idx) = hovered {
                         game.toggle_give_selection(idx);

@@ -199,8 +199,6 @@ impl Game {
             return;
         }
 
-        let payoo = self.payoo_suit.clone().unwrap_or(crate::card::Suit::Spades);
-
         // Collect cards each player will give
         let mut gifts: Vec<Vec<Card>> = Vec::new();
 
