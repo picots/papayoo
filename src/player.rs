@@ -1,4 +1,4 @@
-use crate::card::{Card, Suit};
+use crate::card::{Card, Suit, suit_order};
 
 use rand::prelude::SliceRandom;
 
@@ -18,6 +18,7 @@ pub struct Player {
 }
 
 impl Player {
+    /// Builds a human or AI player withe a name
     pub fn new(name: String, kind: PlayerKind) -> Self {
         Self {
             name,
@@ -48,12 +49,12 @@ impl Player {
         (0..self.hand.len()).collect()
     }
 
-    /// Remove a card from hand by index and return it.
+    /// Removes a card from hand by index and return it.
     pub fn play_card(&mut self, index: usize) -> Card {
         self.hand.remove(index)
     }
 
-    /// Calculate round points from collected tricks.
+    /// Calculates round points from collected tricks.
     pub fn calculate_round_score(&self) -> u32 {
         self.tricks_taken.iter().map(|c| c.points()).sum()
     }
@@ -80,6 +81,7 @@ impl Player {
             .unwrap_or(0)
     }
 
+    /// Chooses the 5 cards to give to AI neighbor
     pub fn ai_cards_to_give(&self) -> Vec<Card> {
         let mut hand = self.hand.clone();
         hand.shuffle(&mut rand::thread_rng());
@@ -95,21 +97,12 @@ impl Player {
         cards_to_give
     }
 
+    /// Sorts a player hand
     pub fn sort_hand(&mut self) {
         self.hand.sort_by(|a, b| {
             let sa = suit_order(&a.suit);
             let sb = suit_order(&b.suit);
             sa.cmp(&sb).then(a.value.cmp(&b.value))
         });
-    }
-}
-
-pub fn suit_order(suit: &crate::card::Suit) -> u8 {
-    match suit {
-        crate::card::Suit::Spades => 0,
-        crate::card::Suit::Hearts => 1,
-        crate::card::Suit::Clubs => 2,
-        crate::card::Suit::Diamonds => 3,
-        crate::card::Suit::Joker => 4,
     }
 }

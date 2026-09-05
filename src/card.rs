@@ -10,6 +10,7 @@ pub enum Suit {
 }
 
 impl Suit {
+    /// Gives the suit symbol
     pub fn symbol(&self) -> &str {
         match self {
             Suit::Spades => "Pique",
@@ -20,6 +21,7 @@ impl Suit {
         }
     }
 
+    ///Gives the suit color
     pub fn color(&self) -> Color {
         match self {
             Suit::Hearts | Suit::Diamonds => RED,
@@ -36,6 +38,7 @@ pub struct Card {
 }
 
 impl Card {
+    /// Builds a card with a suit and a color
     pub fn new(suit: Suit, value: u8) -> Self {
         Card { suit, value }
     }
@@ -50,7 +53,19 @@ impl Card {
         }
     }
 
+    /// Checks if a suit is the payoo suit
     pub fn is_papayoo(&self, payoo_suit: &Suit) -> bool {
         &self.suit == payoo_suit && self.value == 7
+    }
+}
+
+/// Gives the order to sort suits
+pub fn suit_order(suit: &Suit) -> u8 {
+    match suit {
+        Suit::Spades => 0,
+        Suit::Hearts => 1,
+        Suit::Clubs => 2,
+        Suit::Diamonds => 3,
+        Suit::Joker => 4,
     }
 }

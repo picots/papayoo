@@ -1,13 +1,16 @@
 use macroquad::prelude::*;
+use macroquad::ui::{hash, root_ui};
 
 use crate::card::Card;
 use crate::game::{Game, GameState};
+use crate::player::PlayerKind;
 
 // Card dimensions
 pub const CARD_W: f32 = 70.0;
 pub const CARD_H: f32 = 100.0;
 const CARD_RADIUS: f32 = 6.0;
 
+/// Draws, highlights or grays a card
 pub fn draw_card(card: &Card, x: f32, y: f32, highlighted: bool, grayed: bool) {
     let bg = if grayed {
         Color::new(0.75, 0.75, 0.75, 1.0)
@@ -41,6 +44,7 @@ pub fn draw_card(card: &Card, x: f32, y: f32, highlighted: bool, grayed: bool) {
     );
 }
 
+/// Draws a card back
 pub fn draw_card_back(x: f32, y: f32) {
     draw_rounded_rect(x, y, CARD_W, CARD_H, CARD_RADIUS, DARKBLUE);
     draw_rounded_rect_outline(
@@ -53,15 +57,18 @@ pub fn draw_card_back(x: f32, y: f32) {
     );
 }
 
+/// Draws a round rectangle
 fn draw_rounded_rect(x: f32, y: f32, w: f32, h: f32, _r: f32, color: Color) {
     draw_rectangle(x, y, w, h, color);
 }
 
+/// Draws a outline round rectangle
 fn draw_rounded_rect_outline(x: f32, y: f32, w: f32, h: f32, _r: f32, color: Color) {
     draw_rectangle_lines(x, y, w, h, 2.0, color);
 }
 
-pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
+/// Draws the game
+pub fn draw_game(game: &mut Game, names: &mut Vec<String>, hovered_card: Option<usize>) {
     let sw = screen_width();
     let sh = screen_height();
 
@@ -79,6 +86,7 @@ pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
 
     // Payoo suit indicator
     if let Some(payoo) = &game.payoo_suit
+        && game.state != GameState::ChooseNames
         && game.state != GameState::GivingCards
     {
         let txt = format!("Payoo : {}", payoo.symbol());
@@ -99,6 +107,10 @@ pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
         );
     }
 
+    if game.state == GameState::ChooseNames {
+        draw_names_overlay(game, names, sw, sh);
+    }
+
     // Trick center — show last_trick during TrickEnd, otherwise current trick
     let displayed_trick = if game.state == GameState::TrickEnd {
         &game.last_trick
@@ -114,15 +126,25 @@ pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
     }
 
     // Opponent hands (top — show backs)
-    let opp_positions = [
-        (sw / 2.0 - 40.0, 75.0),       // Top (player 2)
-        (30.0, sh / 2.0 - 50.0),       // Left (player 1)
-        (sw - 180.0, sh / 2.0 - 50.0), // Right (player 3)
+    let positions = [
+        (sw / 2.0 - 40.0, sh - 150.0), // Bottom (human)
+        (30.0, sh / 2.0 - 50.0),       // Left (bot 1)
+        (sw / 2.0 - 40.0, 75.0),       // Top (bot 2)
+        (sw - 180.0, sh / 2.0 - 50.0), // Right (bot 3)
     ];
-    for (i, (bx, by)) in opp_positions.iter().enumerate() {
-        let p = &game.players[i + 1];
+    for (i, (bx, by)) in positions.iter().enumerate() {
+        let p = &game.players[i];
         let count = p.hand.len();
-        draw_text(&p.name, *bx, *by - 4.0, 16.0, WHITE);
+        draw_text(
+            &format!("{} ({})", p.name, p.calculate_round_score()),
+            *bx,
+            *by - 4.0,
+            16.0,
+            WHITE,
+        );
+        if p.kind == PlayerKind::Human {
+            continue; // No need to draw card backs
+        }
         for j in 0..count.min(10) {
             draw_card_back(*bx + j as f32 * 8.0, *by);
         }
@@ -194,6 +216,7 @@ pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
     }
 }
 
+/// Returs the hovered card index in the human's hand
 pub fn hovered_hand_card(sw: f32, sh: f32, hand_size: usize, mx: f32, my: f32) -> Option<usize> {
     let hand_w = hand_size as f32 * (CARD_W + 6.0);
     let hx_start = sw / 2.0 - hand_w / 2.0;
@@ -207,6 +230,7 @@ pub fn hovered_hand_card(sw: f32, sh: f32, hand_size: usize, mx: f32, my: f32) -
     None
 }
 
+/// Draws the round end overlay
 fn draw_round_end_overlay(game: &Game, sw: f32, sh: f32) {
     draw_rectangle(
         sw / 2.0 - 200.0,
@@ -233,6 +257,7 @@ fn draw_round_end_overlay(game: &Game, sw: f32, sh: f32) {
     }
 }
 
+/// Draws the game over overlay
 fn draw_game_over_overlay(game: &Game, sw: f32, sh: f32) {
     draw_rectangle(
         sw / 2.0 - 220.0,
@@ -281,6 +306,7 @@ fn draw_game_over_overlay(game: &Game, sw: f32, sh: f32) {
     );
 }
 
+/// Draws a centered message
 fn draw_centered_message(msg: &str, sw: f32, sh: f32) {
     let w = msg.len() as f32 * 11.0;
     draw_rectangle(
@@ -293,6 +319,7 @@ fn draw_centered_message(msg: &str, sw: f32, sh: f32) {
     draw_text(msg, sw / 2.0 - w / 2.0, sh / 2.0 + 4.0, 24.0, YELLOW);
 }
 
+/// Draw the giving overlay
 fn draw_giving_overlay(game: &Game, sw: f32, _sh: f32) {
     let count = game.selected_to_give.len();
     let msg = format!("Choisissez 5 cartes à donner à votre voisin ({}/5)", count);
@@ -319,6 +346,44 @@ fn draw_giving_overlay(game: &Game, sw: f32, _sh: f32) {
     draw_text("Confirmer", sw / 2.0 - 45.0, btn_h + 25.0, 22.0, WHITE);
 }
 
+/// Checks if the giving confirm button is clicked
 pub fn giving_confirm_clicked(sw: f32, my: f32, mx: f32) -> bool {
     mx >= sw / 2.0 - 45.0 && mx <= sw / 2.0 + 45.0 && my >= 495.0 && my <= 535.0
+}
+
+/// Shows the names dialog
+pub fn draw_names_overlay(game: &mut Game, names: &mut Vec<String>, sw: f32, _sh: f32) {
+    let msg = "Choix des noms des joueurs";
+    let msg_w = msg.len() as f32 * 10.0;
+    let msg_h = 375.0;
+
+    draw_rectangle(
+        sw / 2.0 - msg_w / 2.0 - 20.0,
+        msg_h - 25.0,
+        msg_w + 25.0,
+        36.0,
+        Color::new(0.0, 0.0, 0.0, 0.75),
+    );
+    draw_text(msg, sw / 2.0 - msg_w / 2.0 + 10.0, msg_h, 20.0, WHITE);
+
+    root_ui().window(
+        hash!(),
+        vec2(sw + 25.0, msg_h + 25.0),
+        vec2(250.0, 225.0),
+        |ui| {
+            for i in 0..4 {
+                ui.label(None, &format!("Joueur {}:", i + 1));
+                ui.input_text(
+                    hash!("player_name", i),
+                    &format!("Nom du joueur {}", i + 1),
+                    &mut names[i],
+                );
+                ui.separator();
+            }
+
+            if ui.button(vec2(120.0, 200.0), "Confirmer") {
+                game.set_names(names.to_vec());
+            }
+        },
+    );
 }

@@ -31,6 +31,7 @@ pub struct Game {
 }
 
 impl Game {
+    /// Builds a game with 1 human and 3 AIs and start it
     pub fn new() -> Self {
         let players = vec![
             Player::new("Joueur 1".to_string(), PlayerKind::Human),
@@ -41,7 +42,7 @@ impl Game {
 
         let mut game = Game {
             players,
-            state: GameState::GivingCards,
+            state: GameState::ChooseNames,
             current_player: 0,
             trick_leader: 0,
             trick: Vec::new(),
@@ -59,7 +60,20 @@ impl Game {
         game
     }
 
-    fn set_names(&mut self, names: Vec<String>) {
+    /// Gives each player's name
+    pub fn get_names(&mut self) -> Vec<String> {
+        let mut names = vec![];
+
+        for i in 0..4 {
+            names.push(self.players[i].name.to_string());
+        }
+        names
+    }
+
+    /// Changes each player's name
+    pub fn set_names(&mut self, names: Vec<String>) {
+        self.state = GameState::GivingCards;
+
         if names.len() != 4 {
             return;
         }
@@ -69,12 +83,14 @@ impl Game {
         }
     }
 
+    /// Chooses a papayoo suit randomly before each round
     fn pick_random_payoo(&mut self) {
         let suits = [Suit::Spades, Suit::Hearts, Suit::Diamonds, Suit::Clubs];
         let suit = suits.choose(&mut thread_rng()).unwrap().clone();
         self.payoo_suit = Some(suit);
     }
 
+    /// Deals cards to players before each trick
     fn deal_cards(&mut self) {
         let mut deck = Deck::new();
         let hands = deck.deal(4);
@@ -99,7 +115,7 @@ impl Game {
         self.advance_turn();
     }
 
-    /// Advance to next player; if trick is complete, resolve it.
+    /// Advances to next player; if trick is complete, resolve it.
     pub fn advance_turn(&mut self) {
         let next = (self.current_player + 1) % 4;
 
@@ -128,7 +144,7 @@ impl Game {
         self.advance_turn();
     }
 
-    /// Determine who wins the trick (highest card of lead suit wins).
+    /// Determines who wins the trick (highest card of lead suit wins).
     fn resolve_trick(&mut self) {
         let lead = self.lead_suit.clone().unwrap();
         let winner_idx = self
@@ -160,6 +176,7 @@ impl Game {
         }
     }
 
+    /// Manages the trick end
     pub fn after_trick_end(&mut self) {
         self.trick_winner = None;
         self.state = if self.players[self.current_player].kind == PlayerKind::Human {
@@ -169,6 +186,7 @@ impl Game {
         };
     }
 
+    /// Manages the round end
     fn end_round(&mut self) {
         for player in &mut self.players {
             player.end_round();
@@ -177,6 +195,7 @@ impl Game {
         self.state_timer = 3.0;
     }
 
+    /// Manages a new round start
     pub fn start_next_round(&mut self) {
         self.round += 1;
         // Check game end condition (e.g. 3 rounds played)
@@ -194,7 +213,7 @@ impl Game {
         self.state = GameState::GivingCards;
     }
 
-    /// Toggle selection of a card in human hand for the giving phase.
+    /// Toggles selection of a card in human hand for the giving phase.
     pub fn toggle_give_selection(&mut self, card_index: usize) {
         if let Some(pos) = self.selected_to_give.iter().position(|&i| i == card_index) {
             self.selected_to_give.remove(pos);
@@ -245,6 +264,7 @@ impl Game {
         self.advance_turn();
     }
 
+    /// Update the state timer
     pub fn update_timer(&mut self, dt: f32) {
         if self.state_timer > 0.0 {
             self.state_timer -= dt;
