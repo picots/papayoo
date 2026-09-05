@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use macroquad::ui::{hash, root_ui};
 
 use crate::card::Card;
 use crate::game::{Game, GameState};
@@ -62,7 +63,7 @@ fn draw_rounded_rect_outline(x: f32, y: f32, w: f32, h: f32, _r: f32, color: Col
     draw_rectangle_lines(x, y, w, h, 2.0, color);
 }
 
-pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
+pub fn draw_game(game: &mut Game, names: &mut Vec<String>, hovered_card: Option<usize>) {
     let sw = screen_width();
     let sh = screen_height();
 
@@ -80,6 +81,7 @@ pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
 
     // Payoo suit indicator
     if let Some(payoo) = &game.payoo_suit
+        && game.state != GameState::ChooseNames
         && game.state != GameState::GivingCards
     {
         let txt = format!("Payoo : {}", payoo.symbol());
@@ -98,6 +100,10 @@ pub fn draw_game(game: &Game, hovered_card: Option<usize>) {
             20.0,
             color,
         );
+    }
+
+    if game.state == GameState::ChooseNames {
+        draw_names_overlay(game, names, sw, sh);
     }
 
     // Trick center — show last_trick during TrickEnd, otherwise current trick
@@ -332,4 +338,35 @@ fn draw_giving_overlay(game: &Game, sw: f32, _sh: f32) {
 
 pub fn giving_confirm_clicked(sw: f32, my: f32, mx: f32) -> bool {
     mx >= sw / 2.0 - 45.0 && mx <= sw / 2.0 + 45.0 && my >= 495.0 && my <= 535.0
+}
+
+pub fn draw_names_overlay(game: &mut Game, names: &mut Vec<String>, sw: f32, _sh: f32) {
+    let msg = "Choix des noms des joueurs";
+    let msg_w = msg.len() as f32 * 10.0;
+    let msg_h = 375.0;
+
+    draw_rectangle(
+        sw / 2.0 - msg_w / 2.0 - 12.0,
+        msg_h - 25.0,
+        msg_w + 24.0,
+        36.0,
+        Color::new(0.0, 0.0, 0.0, 0.75),
+    );
+    draw_text(msg, sw / 2.0 - msg_w / 2.0 + 10.0, msg_h, 20.0, WHITE);
+
+    root_ui().window(hash!(), vec2(sw, msg_h + 50.0), vec2(300.0, 225.0), |ui| {
+        for i in 0..4 {
+            ui.label(None, &format!("Joueur {}:", i + 1));
+            ui.input_text(
+                hash!("player_name", i),
+                &format!("Nom du joueur {}", i + 1),
+                &mut names[i],
+            );
+            ui.separator();
+        }
+
+        if ui.button(vec2(120.0, 200.0), "Confirmer") {
+            game.set_names(names.to_vec());
+        }
+    });
 }

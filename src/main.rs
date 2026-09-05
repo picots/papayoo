@@ -20,6 +20,7 @@ fn window_conf() -> Conf {
 #[macroquad::main(window_conf)]
 async fn main() {
     let mut game = game::Game::new();
+    let mut names = game.get_names();
     let mut ai_timer: f32 = 0.0; // Small delay before AI plays
     let mut is_fullscreen = true;
 
@@ -77,7 +78,7 @@ async fn main() {
         }
 
         // --- Render ---
-        draw_game(&game, hovered);
+        draw_game(&mut game, &mut names, hovered);
 
         next_frame().await;
     }
