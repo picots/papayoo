@@ -12,8 +12,7 @@ use render::{draw_game, giving_confirm_clicked, hovered_hand_card};
 fn window_conf() -> Conf {
     Conf {
         window_title: "Papayoo 🃏".to_string(),
-        window_width: 1024,
-        window_height: 768,
+        fullscreen: true,
         ..Default::default()
     }
 }
@@ -22,8 +21,14 @@ fn window_conf() -> Conf {
 async fn main() {
     let mut game = game::Game::new();
     let mut ai_timer: f32 = 0.0; // Small delay before AI plays
+    let mut is_fullscreen = true;
 
     loop {
+        if is_key_pressed(KeyCode::Escape) {
+            is_fullscreen = !is_fullscreen;
+            set_fullscreen(is_fullscreen);
+        }
+
         let sw = screen_width();
         let sh = screen_height();
         let dt = get_frame_time();
