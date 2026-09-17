@@ -7,7 +7,7 @@ There're several cards which worth a certain points amount :
 - Jokers -> from 1 to 20 points
 - Payoo -> a 7 of any of the 4 suits, random chosen at the round start, which worth 40 points
 
-The game consists of 3 rounds. The player with the smaller score at the end win the game.
+The game consists of a certain number of rounds (3 by default). The player with the smaller score at the end win the game.
 
 ## Project structure
 
@@ -30,5 +30,7 @@ The game consists of 3 rounds. The player with the smaller score at the end win 
 Papayoo's UI is written in French.
 
 The game contains 1 human player and 3 AI players.
+
+Before starting to play, the human player can choose how many he wants to play and how each player is called.
 
 © Picot Solal

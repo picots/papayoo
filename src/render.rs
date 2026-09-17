@@ -68,7 +68,12 @@ fn draw_rounded_rect_outline(x: f32, y: f32, w: f32, h: f32, _r: f32, color: Col
 }
 
 /// Draws the game
-pub fn draw_game(game: &mut Game, names: &mut Vec<String>, hovered_card: Option<usize>) {
+pub fn draw_game(
+    game: &mut Game,
+    names: &mut Vec<String>,
+    max_round: &mut String,
+    hovered_card: Option<usize>,
+) {
     let sw = screen_width();
     let sh = screen_height();
 
@@ -86,7 +91,7 @@ pub fn draw_game(game: &mut Game, names: &mut Vec<String>, hovered_card: Option<
 
     // Payoo suit indicator
     if let Some(payoo) = &game.payoo_suit
-        && game.state != GameState::ChooseNames
+        && game.state != GameState::StartGame
         && game.state != GameState::GivingCards
     {
         let txt = format!("Payoo : {}", payoo.symbol());
@@ -107,8 +112,8 @@ pub fn draw_game(game: &mut Game, names: &mut Vec<String>, hovered_card: Option<
         );
     }
 
-    if game.state == GameState::ChooseNames {
-        draw_names_overlay(game, names, sw, sh);
+    if game.state == GameState::StartGame {
+        draw_start_overlay(game, names, max_round, sw, sh);
     }
 
     // Trick center — show last_trick during TrickEnd, otherwise current trick
@@ -351,9 +356,15 @@ pub fn giving_confirm_clicked(sw: f32, my: f32, mx: f32) -> bool {
     mx >= sw / 2.0 - 45.0 && mx <= sw / 2.0 + 45.0 && my >= 495.0 && my <= 535.0
 }
 
-/// Shows the names dialog
-pub fn draw_names_overlay(game: &mut Game, names: &mut Vec<String>, sw: f32, _sh: f32) {
-    let msg = "Choix des noms des joueurs";
+/// Shows the start dialog
+pub fn draw_start_overlay(
+    game: &mut Game,
+    names: &mut Vec<String>,
+    max_round: &mut String,
+    sw: f32,
+    _sh: f32,
+) {
+    let msg = "Paramètres de la partie";
     let msg_w = msg.len() as f32 * 10.0;
     let msg_h = 375.0;
 
@@ -371,17 +382,21 @@ pub fn draw_names_overlay(game: &mut Game, names: &mut Vec<String>, sw: f32, _sh
         vec2(sw + 25.0, msg_h + 25.0),
         vec2(250.0, 225.0),
         |ui| {
+            ui.label(None, "Nombre de tours :");
+            ui.input_text(hash!("max_round"), "", max_round);
+            ui.separator();
+
+            ui.label(None, "Nom des joueurs:");
             for i in 0..4 {
-                ui.label(None, &format!("Joueur {}:", i + 1));
-                ui.input_text(
-                    hash!("player_name", i),
-                    &format!("Nom du joueur {}", i + 1),
-                    &mut names[i],
-                );
+                ui.input_text(hash!("player_name", i), "", &mut names[i]);
                 ui.separator();
             }
 
             if ui.button(vec2(120.0, 200.0), "Confirmer") {
+                game.max_round = match max_round.trim().parse::<u32>() {
+                    Ok(value) => value,
+                    _ => 3,
+                };
                 game.set_names(names.to_vec());
             }
         },

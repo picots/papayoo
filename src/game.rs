@@ -6,7 +6,7 @@ use rand::thread_rng;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum GameState {
-    ChooseNames, // Human player choose players names
+    StartGame,   // Start the game (choose players names and number of rounds)
     GivingCards, // All players are giving 5 cards to player at their left
     PlayerTurn,  // Human picks a card to play
     AITurn,      // AI plays automatically
@@ -28,6 +28,7 @@ pub struct Game {
     pub last_trick: Vec<(usize, Card)>, // Snapshot of trick for TrickEnd display
     pub state_timer: f32,               // For timed transitions (AITurn, TrickEnd)
     pub selected_to_give: Vec<usize>,   // Indices of cards human selected to give
+    pub max_round: u32,
 }
 
 impl Game {
@@ -41,8 +42,8 @@ impl Game {
         ];
 
         let mut game = Game {
-            players,
-            state: GameState::ChooseNames,
+            players: players,
+            state: GameState::StartGame,
             current_player: 0,
             trick_leader: 0,
             trick: Vec::new(),
@@ -53,6 +54,7 @@ impl Game {
             last_trick: Vec::new(),
             state_timer: 0.0,
             selected_to_give: Vec::new(),
+            max_round: 3,
         };
 
         game.deal_cards();
@@ -198,8 +200,7 @@ impl Game {
     /// Manages a new round start
     pub fn start_next_round(&mut self) {
         self.round += 1;
-        // Check game end condition (e.g. 3 rounds played)
-        if self.round > 3 {
+        if self.round > self.max_round {
             self.state = GameState::GameOver;
             return;
         }

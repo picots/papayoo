@@ -22,6 +22,7 @@ fn window_conf() -> Conf {
 async fn main() {
     let mut game = game::Game::new();
     let mut names = game.get_names();
+    let mut max_round = game.max_round.to_string(); // Overlay compliant
     let mut ai_timer: f32 = 0.0; // Small delay before AI plays
     let mut is_fullscreen = true;
 
@@ -79,7 +80,7 @@ async fn main() {
         }
 
         // --- Render ---
-        draw_game(&mut game, &mut names, hovered);
+        draw_game(&mut game, &mut names, &mut max_round, hovered);
 
         next_frame().await;
     }
