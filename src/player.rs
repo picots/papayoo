@@ -18,7 +18,7 @@ pub struct Player {
 }
 
 impl Player {
-    /// Builds a human or AI player withe a name
+    /// Builds a human or AI player with a name
     pub fn new(name: String, kind: PlayerKind) -> Self {
         Self {
             name,
@@ -87,7 +87,7 @@ impl Player {
         hand.shuffle(&mut rand::thread_rng());
         let mut cards_to_give = Vec::new();
         for card in &hand {
-            if card.points() == 0 {
+            if card.points() >= 10 || card.value >= 7 {
                 cards_to_give.push(card.clone());
             }
             if cards_to_give.len() == 5 {

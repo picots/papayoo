@@ -62,7 +62,7 @@ impl Game {
 
     /// Gives each player's name
     pub fn get_names(&mut self) -> Vec<String> {
-        let mut names = vec![];
+        let mut names = Vec::new();
 
         for i in 0..4 {
             names.push(self.players[i].name.to_string());

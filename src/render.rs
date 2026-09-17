@@ -168,7 +168,7 @@ pub fn draw_game(game: &mut Game, names: &mut Vec<String>, hovered_card: Option<
 
     let legal = match game.state {
         GameState::PlayerTurn => human.legal_card_indices(game.lead_suit.as_ref()),
-        _ => vec![],
+        _ => Vec::new(),
     };
 
     for (i, card) in hand.iter().enumerate() {
